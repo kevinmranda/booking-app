@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"net/smtp"
 	"sync"
-	"time"
+	// "time"
 )
 
 const conferenceTickets = 50
@@ -12,6 +14,7 @@ var conferenceName = "Go Conference"
 var remainingTickets uint = 50
 var bookings = make([]UserData, 0)
 
+// Struct UserData
 type UserData struct {
 	firstName       string
 	lastName        string
@@ -104,7 +107,6 @@ func getUserInput() (string, string, string, uint) {
 func bookTicket(userTickets uint, firstName, lastName, email string) {
 	remainingTickets -= userTickets
 
-	//struct for a user
 	var userData = UserData{
 		firstName:       firstName,
 		lastName:        lastName,
@@ -120,10 +122,30 @@ func bookTicket(userTickets uint, firstName, lastName, email string) {
 }
 
 func sendTicket(userTickets uint, firstName, lastName, email string) {
-	time.Sleep(10 * time.Second)
+	// time.Sleep(10 * time.Second)
 	var ticket = fmt.Sprintf("%v tickets for %v %v", userTickets, firstName, lastName)
 	fmt.Println("----------------------")
 	fmt.Printf("sending ticket:\n %v \nto email address %v\n", ticket, email)
 	fmt.Println("----------------------")
+
+	// Set up authentication
+	auth := smtp.PlainAuth("", "kevinmranda042@gmail.com", "xggz xrej dira osyk", "smtp.gmail.com")
+	addr := "smtp.gmail.com:587"
+
+	// Set up email details
+	from := "kevinmranda042@gmail.com"
+	to := []string{email}
+	subject := conferenceName
+	body := ticket
+
+	// Create a byte slice for the email message
+	msg := bytes.NewBufferString("Subject: " + subject + "\r\n\r\n" + body)
+
+	// Send the email
+	err := smtp.SendMail(addr, auth, from, to, msg.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
 	wg.Done()
 }
